@@ -33,7 +33,7 @@ class Terminal:
 
         self.free_load_time = 0
         self.free_unload_time = 0
-        self.free_dispach_time = 0
+        self.free_dispatch_time = 0
         self.free_recive_time = 0
     
     
@@ -59,7 +59,7 @@ class Terminal:
         
         train.load_train(new_demand=demand)
         self.free_load_time = self.current_time + self.load_time
-        self.free_dispach_time += self.load_time
+        self.free_dispatch_time += self.load_time
         self.current_time += self.load_time
 
 
@@ -80,7 +80,7 @@ class Terminal:
         train.location = 'railroad'
         train.destination = destination
         train.arrival_time = current_time + train.calculate_travel_time(distance=self.graph_distances[destination])
-        self.free_dispach_time = current_time
+        self.free_dispatch_time = current_time
     
     def register_train_arrival(self, train: Train, current_time:int):
         self.current_time = current_time

@@ -71,11 +71,11 @@ class Simulator:
             
             
             if train.is_ready:
-                end_time = terminal.free_dispach_time + train.calculate_travel_time(distance=distance)
+                end_time = terminal.free_dispatch_time + train.calculate_travel_time(distance=distance)
                 event_description = f'Train {train.id} is going from Terminal {terminal.id} to Terminal {destination}'
                 
-                event = Event(begin=terminal.free_dispach_time, end=end_time, description=event_description,
-                            type='dispach',train=train,terminal=terminal)
+                event = Event(begin=terminal.free_dispatch_time, end=end_time, description=event_description,
+                            type='dispatch',train=train,terminal=terminal)
                 
                 destination_terminal_id = initial_info['trains'][train.id]['destination']
                 event.destination_terminal = next((ter for ter in self.termimals if ter.id==destination_terminal_id))
@@ -153,7 +153,7 @@ if __name__ == "__main__":
         'trains': {
             '1':{'location':'1', 'destination':'2', 'carg':1000},
             '2':{'location':'1', 'destination':'3', 'carg':1000},
-            '3': {'location':'2', 'destination':'1', 'carg':0}
+            '3': {'location':'1', 'destination':'2', 'carg':0}
         },
         'terminals': {
             '1': {'demand': 30000, 'capacity':60000},
@@ -178,7 +178,7 @@ if __name__ == "__main__":
     
     days_of_simulation = 15
 
-    simulator = Simulator(trains=[train1, train2], terminals=[terminal1,terminal2, terminal3],
+    simulator = Simulator(trains=[train1, train2, train3], terminals=[terminal1,terminal2, terminal3],
                         days=days_of_simulation,
                         initial_info=initial_info,
                         terminals_graph=terminals_graph)

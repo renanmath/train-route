@@ -43,7 +43,7 @@ class Event:
     def unload_train_in_terminal(self):
         self.terminal.unload_train_in_terminal(train=self.train, current_time=self.begin)
 
-    def dispach_train_from_terminal(self):
+    def dispatch_train_from_terminal(self):
         self.terminal.dispatch_train(train=self.train,
                                     destination=self.destination_terminal.id,
                                     current_time=self.begin)
@@ -60,8 +60,8 @@ class Event:
             self.load_train_in_terminal()
         elif self.type == 'unload':
             self.unload_train_in_terminal()
-        elif self.type == 'dispach':
-            self.dispach_train_from_terminal()
+        elif self.type == 'dispatch':
+            self.dispatch_train_from_terminal()
         elif self.type == 'arrival':
             self.train_arrives_at_terminal()
         else:
