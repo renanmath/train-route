@@ -32,8 +32,8 @@ class Schedule:
         self.events.sort(key= lambda ev: ev.begin)
 
     
-    def find_best_time_for_next_event(self, train: Train, type_next_event:str,
-                                            terminal: Terminal, next_terminal: Terminal, end_last_event:int):
+    def find_best_time_for_next_event(self, type_next_event:str,
+                                            terminal: Terminal, end_last_event:int):
 
     
 
@@ -93,57 +93,58 @@ class Schedule:
     
 
 
-    def build_unload_event(self, prev_event: Event, next_destination: Terminal=None):
+    def build_unload_event(self, train: Train, terminal: Terminal, end_last_event:int):
 
-        begin = self.find_best_time_for_next_event(train=prev_event.train,
-                                                    type_next_event='unload',
-                                                    terminal=prev_event.terminal,
-                                                    next_terminal=next_destination,
-                                                    end_last_event=prev_event.end)
+        begin = self.find_best_time_for_next_event(type_next_event='unload',
+                                                    terminal= terminal,
+                                                    end_last_event=end_last_event)
 
-        event_description = f'Train {prev_event.train.id} is unloading carg at Terminal {prev_event.terminal.id}'
+        event_description = f'Train {train.id} is unloading carg at Terminal {terminal.id}'
 
-        end = begin + prev_event.terminal.unload_time
+        end = begin + terminal.unload_time
 
         next_event = Event(begin=begin, end=end, type='unload',
-                            description=event_description, train=prev_event.train,
-                            terminal=prev_event.terminal)
+                            description=event_description, train=train,
+                            terminal= terminal)
         return next_event
     
-    def build_load_event(self, prev_event: Event, next_destination: Terminal=None):
+    def build_load_event(self, train: Train, terminal: Terminal, end_last_event:int):
 
-        begin = self.find_best_time_for_next_event(train=prev_event.train,
-                                                    type_next_event='load',
-                                                    terminal=prev_event.terminal,
-                                                    next_terminal=next_destination,
-                                                    end_last_event=prev_event.end)
+        begin = self.find_best_time_for_next_event(type_next_event='load',
+                                                    terminal=terminal,
+                                                    end_last_event=end_last_event)
 
-        event_description = f'Train {prev_event.train.id} is loading carg at Terminal {prev_event.terminal.id}'
+        event_description = f'Train {train.id} is loading carg at Terminal {terminal.id}'
 
-        end = begin+prev_event.terminal.load_time
+        end = begin + terminal.load_time
 
         next_event = Event(begin=begin, end=end, type='load',
-                            description=event_description, train=prev_event.train,
-                            terminal=prev_event.terminal)
+                            description=event_description, train=train,
+                            terminal=terminal)
         return next_event
     
-    def build_dispatch_event(self, prev_event: Event, next_destination: Terminal=None):
+    def build_dispatch_event(self, train: Train, current_terminal: Terminal, next_destination: Terminal, end_last_event:int):
 
-        begin = max(prev_event.end, prev_event.terminal.free_dispatch_time)
+        begin = max(end_last_event, current_terminal.free_dispatch_time)
 
-        event_description = f'Train {prev_event.train.id} is going from Terminal {prev_event.terminal.id} to Terminal {next_destination.id}'
+        event_description = f'Train {train.id} is going from Terminal {current_terminal.id} to Terminal {next_destination.id}'
  
-        distance = prev_event.terminal.graph_distances[next_destination.id]
-        travel_time = prev_event.train.calculate_travel_time(distance=distance)
+        distance = current_terminal.graph_distances[next_destination.id]
+        travel_time = train.calculate_travel_time(distance=distance)
         end = begin + travel_time
 
         next_event = Event(begin=begin, end=end, type='dispatch',
-                            description=event_description, train=prev_event.train,
-                            terminal=prev_event.terminal)
+                            description=event_description, train=train,
+                            terminal=current_terminal)
         return next_event
         
     
     def schedule_next_event(self, next_destination: Terminal=None) -> Event:
+        """
+        Schedule a next event, based on info from the last event called.
+        Params:
+            - next_destination (Terminal): next terminla. Only relevant when scheduling a arrival event.
+        """
         
         prev_event = self.pop_event()
         
@@ -153,22 +154,34 @@ class Schedule:
 
         elif prev_event.type == 'arrival':
             if not prev_event.train.is_empty:
-                next_event = self.build_unload_event(prev_event, next_destination)
+                next_event = self.build_unload_event(train=prev_event.train, 
+                                                    terminal=prev_event.terminal,
+                                                    end_last_event=prev_event.end)
             else:
                 if prev_event.terminal.has_demand:
-                    next_event = self.build_load_event(prev_event, next_destination)
+                    next_event = self.build_load_event(train=prev_event.train,
+                                                        terminal=prev_event.terminal,
+                                                        end_last_event=prev_event.end)
                 else:
                     next_event = self.build_dispatch_event(prev_event, next_destination)
         
         elif prev_event.type == 'unload':
             if prev_event.terminal.has_demand:
-                next_event = self.build_load_event(prev_event, next_destination)
+                next_event = self.build_load_event(train=prev_event.train,
+                                                        terminal=prev_event.terminal,
+                                                        end_last_event=prev_event.end)
             else:
-                next_event = self.build_dispatch_event(prev_event, next_destination)
+                next_event = self.build_dispatch_event(train=prev_event.train,
+                                                        current_terminal=prev_event.terminal,
+                                                        next_destination=next_destination,
+                                                        end_last_event=prev_event.end)
 
         
         elif prev_event.type == 'load':
-            next_event = self.build_dispatch_event(prev_event, next_destination)
+            next_event = self.build_dispatch_event(train=prev_event.train,
+                                                        current_terminal=prev_event.terminal,
+                                                        next_destination=next_destination,
+                                                        end_last_event=prev_event.end)
             
         
         else:

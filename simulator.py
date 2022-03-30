@@ -137,9 +137,6 @@ class Simulator:
 
             self.time = event.begin
 
-            for terminal in self.termimals:
-                terminal.current_time = self.time
-
             next_destination = self.find_best_next_destination(current_terminal=event.terminal,
                                                             train=event.train,
                                                             time_horizon=time_horizon)
@@ -166,7 +163,7 @@ if __name__ == "__main__":
     }
 
     train1 = Train(id='1',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
-    train1.is_ready = False
+    train1.is_ready = True
     train2 = Train(id='2',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
     train2.is_ready = True
     train3 = Train(id='3',velocity_empty=20, velocity_full=17,max_capacity=1000,location='2')
@@ -181,7 +178,7 @@ if __name__ == "__main__":
     
     days_of_simulation = 5
 
-    simulator = Simulator(trains=[train1], terminals=[terminal1,terminal2],
+    simulator = Simulator(trains=[train1, train2], terminals=[terminal1,terminal2, terminal3],
                         days=days_of_simulation,
                         initial_info=initial_info,
                         terminals_graph=terminals_graph,
