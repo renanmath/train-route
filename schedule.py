@@ -8,13 +8,14 @@ class Schedule:
     Model a calendar of events
     """
 
-    def __init__(self) -> None:
+    def __init__(self, verbose: bool = False) -> None:
         """
         Constructor method
         """
 
         self.events = list()
         self.events_log = list()
+        self.verbose = verbose
 
     def append_event(self,new_event: Event):
         self.events.append(new_event)
@@ -46,7 +47,7 @@ class Schedule:
         scheduled_events.sort(key=lambda ev:ev.begin)
 
         if len(scheduled_events) == 0:
-            return terminal.free_unload_time if type_next_event == 'unload' else terminal.free_load_time
+            return end_last_event
 
         if end_last_event + duration < scheduled_events[0].begin:
 
@@ -71,37 +72,11 @@ class Schedule:
 
                 return begin
 
-
-
-    def find_begin_time_for_next_event(self, prev_event: Event, terminal: Terminal, next_terminal: Terminal) -> int:
-
-        events_cycle = {
-            'dispatch': 'arrival',
-            'arrival': 'unload',
-            'unload': 'load',
-            'load': 'dispatch'
-        }
-        next_event_type = events_cycle[prev_event.type]
-        
-        times_setted = [event.begin for event in self.events
-                        if event.type ==  next_event_type
-                        and event.terminal == prev_event.terminal]
-        
-        if prev_event.end not in times_setted:
-            return prev_event.end
-        elif prev_event.type == 'load':
-            return prev_event.end + terminal.unload_time
-        else:
-            return max([event.end for event in self.events
-                        if event.type ==  next_event_type
-                        and event.terminal == prev_event.terminal])
-        
-
-    
+  
     
     def build_arrival_event(self, prev_event: Event, next_destination: Terminal=None):
 
-        begin = prev_event.end
+        begin = max(prev_event.end, prev_event.terminal.free_recive_time)
         event_description = f'Train {prev_event.train.id} arrived at Terminal {prev_event.destination_terminal.id}'
 
         next_event = Event(begin=begin, end=begin, type='arrival',
@@ -109,12 +84,14 @@ class Schedule:
                             train=prev_event.train,
                             terminal=prev_event.destination_terminal)
         
+        """
         next_destination.free_recive_time = max(next_destination.free_recive_time, next_event.end)
         next_destination.free_unload_time = max(next_destination.free_unload_time, next_event.end)
         next_destination.free_load_time = max(next_destination.free_load_time, 
-                                            next_destination.free_unload_time+next_destination.unload_time)
+                                            #next_destination.free_unload_time+next_destination.unload_time)
         next_destination.free_dispatch_time = max(next_destination.free_dispatch_time,
                                             next_destination.free_load_time+next_destination.load_time)
+        """
         
         return next_event
     
@@ -156,7 +133,7 @@ class Schedule:
     
     def build_dispatch_event(self, prev_event: Event, next_destination: Terminal=None):
 
-        begin = prev_event.end
+        begin = max(prev_event.end, prev_event.terminal.free_dispatch_time)
 
         event_description = f'Train {prev_event.train.id} is going from Terminal {prev_event.terminal.id} to Terminal {next_destination.id}'
  
@@ -170,9 +147,10 @@ class Schedule:
         return next_event
         
     
-    def schedule_next_event(self,prev_event: Event, next_destination: Terminal=None) -> Event:
+    def schedule_next_event(self, next_destination: Terminal=None) -> Event:
         
-
+        prev_event = self.pop_event()
+        
         if prev_event.type == 'dispatch':
             next_event = self.build_arrival_event(prev_event, next_destination)            
 
@@ -204,10 +182,11 @@ class Schedule:
         next_event.destination_terminal = next_destination
         self.append_event(next_event)
         
-        #print("-----Schedule event-----")
-        #print(next_event)
-        #print("-"*10)
-        
+        if self.verbose:
+            print("-----Schedule event-----")
+            print(next_event)
+            print("-"*10)
+            
 
         return next_event
 

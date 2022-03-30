@@ -11,7 +11,7 @@ class Simulator:
     """
 
     def __init__(self, trains: List[Train], terminals: List[Terminal], 
-                days: int, initial_info: dict, terminals_graph:dict) -> None:
+                days: int, initial_info: dict, terminals_graph:dict, verbose:bool = False) -> None:
         """
         Constructor method
         Params:
@@ -40,7 +40,7 @@ class Simulator:
         self.time = 0  # instant of time of the simulation, in minutes
         self.demand_per_terminal = {terminal_id: initial_info['terminals'][terminal_id]['demand'] 
                                     for terminal_id in initial_info['terminals']}
-        self.scheduler = Schedule()
+        self.scheduler = Schedule(verbose=verbose)
 
     
     def get_terminal_from_id(self, terminal_id):
@@ -125,14 +125,14 @@ class Simulator:
 
 
     
-    def simulate(self):
+    def simulate(self, verbose: bool=False):
         time_horizon = self.days*24*60 # maximum time in minutes of the simulation
 
         self.initiate_simulation()
 
         while len(self.scheduler.events) > 0 and self.time <= time_horizon:
             
-            event = self.scheduler.pop_event()
+            event = self.scheduler.events[0]
 
             self.time = event.begin
 
@@ -143,7 +143,7 @@ class Simulator:
             
             event.callback()             
             
-            simulator.scheduler.schedule_next_event(prev_event=event,next_destination=next_destination)
+            simulator.scheduler.schedule_next_event(next_destination=next_destination)
 
 
 
@@ -178,10 +178,11 @@ if __name__ == "__main__":
     
     days_of_simulation = 15
 
-    simulator = Simulator(trains=[train1, train2, train3], terminals=[terminal1,terminal2, terminal3],
+    simulator = Simulator(trains=[train1, train2], terminals=[terminal1,terminal2, terminal3],
                         days=days_of_simulation,
                         initial_info=initial_info,
-                        terminals_graph=terminals_graph)
+                        terminals_graph=terminals_graph,
+                        verbose=False)
 
     
     simulator.simulate()

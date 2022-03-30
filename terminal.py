@@ -59,20 +59,18 @@ class Terminal:
         
         train.load_train(new_demand=demand)
         self.free_load_time = self.current_time + self.load_time
-        self.free_dispatch_time += self.load_time
-        self.current_time += self.load_time
+        self.free_dispatch_time = self.free_load_time
+        
 
 
     def unload_train_in_terminal(self, train: Train, current_time:int):
 
         self.current_time = current_time
+        self.free_recive_time = self.current_time 
         product, total = train.unload_train()
         self.capacity -= total
         self.product = product
-        self.free_unload_time = self.unload_time + self.current_time
-        self.current_time = self.free_unload_time
-        self.free_recive_time = self.current_time
-        
+        self.free_unload_time = self.current_time + self.unload_time               
 
     
     def dispatch_train(self, train: Train, destination: str, current_time:int):
