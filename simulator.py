@@ -51,6 +51,7 @@ class Simulator:
 
     
     def initiate_simulation(self):
+        
         initial_events = []
 
         loading_time = {}
@@ -60,15 +61,14 @@ class Simulator:
        
         
         for train in self.trains:
+
             train_id = train.id
             location = self.initial_info['trains'][train_id]['location']
             destination = self.initial_info['trains'][train_id]['destination']
             distance = self.terminals_graph[location][destination]
             train.location = location
             terminal = self.get_terminal_from_id(terminal_id=location)
-            loading_time[terminal.id] = terminal.load_time
-            
-            
+            loading_time[terminal.id] = terminal.load_time           
             
             if train.is_ready:
                 end_time = terminal.free_dispatch_time + train.calculate_travel_time(distance=distance)
@@ -93,10 +93,7 @@ class Simulator:
 
                 destination_terminal_id = initial_info['trains'][train.id]['destination']
                 event.destination_terminal = next((ter for ter in self.termimals if ter.id==destination_terminal_id))
-                terminal.free_load_time = end_time
-
-                
-          
+                terminal.free_load_time = end_time    
             
             else:
                 train.is_ready = True
@@ -107,8 +104,7 @@ class Simulator:
         initial_events.sort(key=lambda ev: ev.begin)
 
         for ev in initial_events:
-            self.scheduler.append_event(ev)
-       
+            self.scheduler.append_event(ev)       
 
     
     def find_best_next_destination(self, current_terminal: Terminal, train: Train, time_horizon:int):
@@ -170,7 +166,7 @@ if __name__ == "__main__":
     }
 
     train1 = Train(id='1',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
-    #train1.is_ready = True
+    train1.is_ready = False
     train2 = Train(id='2',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
     train2.is_ready = True
     train3 = Train(id='3',velocity_empty=20, velocity_full=17,max_capacity=1000,location='2')

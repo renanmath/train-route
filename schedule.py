@@ -46,11 +46,6 @@ class Schedule:
         
         scheduled_events.sort(key=lambda ev:ev.begin)
 
-        #print('---DEBUG---')
-        #print(self.events)
-        #print(scheduled_events)
-        #print(end_last_event, duration)
-        #print("-"*10)
 
         if len(scheduled_events) == 0:
             return max(end_last_event, free_time)
@@ -93,14 +88,6 @@ class Schedule:
                             train=prev_event.train,
                             terminal=prev_event.destination_terminal)
         
-        """
-        next_destination.free_recive_time = max(next_destination.free_recive_time, next_event.end)
-        next_destination.free_unload_time = max(next_destination.free_unload_time, next_event.end)
-        next_destination.free_load_time = max(next_destination.free_load_time, 
-                                            #next_destination.free_unload_time+next_destination.unload_time)
-        next_destination.free_dispatch_time = max(next_destination.free_dispatch_time,
-                                            next_destination.free_load_time+next_destination.load_time)
-        """
         
         return next_event
     
@@ -190,10 +177,6 @@ class Schedule:
         
         next_event.destination_terminal = next_destination
         self.append_event(next_event)
-        
-        #print("DEBUG -- all schedule events")
-        #print(self.events)
-        #print("\n\n")
         
         if self.verbose:
             print("-----Schedule event-----")
