@@ -163,7 +163,10 @@ class Schedule:
                                                         terminal=prev_event.terminal,
                                                         end_last_event=prev_event.end)
                 else:
-                    next_event = self.build_dispatch_event(prev_event, next_destination)
+                    next_event = self.build_dispatch_event(train=prev_event.train,
+                                                        current_terminal=prev_event.terminal,
+                                                        next_destination=next_destination,
+                                                        end_last_event=prev_event.end)
         
         elif prev_event.type == 'unload':
             if prev_event.terminal.has_demand:
@@ -177,15 +180,11 @@ class Schedule:
                                                         end_last_event=prev_event.end)
 
         
-        elif prev_event.type == 'load':
+        else:
             next_event = self.build_dispatch_event(train=prev_event.train,
                                                         current_terminal=prev_event.terminal,
                                                         next_destination=next_destination,
                                                         end_last_event=prev_event.end)
-            
-        
-        else:
-            raise ValueError(f"{prev_event.type} is not a valid event")
 
         
         next_event.destination_terminal = next_destination

@@ -21,6 +21,9 @@ class Event:
             - demand: demand
         """
 
+        if type.lower() not in ['dispatch', 'arrival', 'unload', 'load']:
+            raise EventException(f"{type} is not a valid type of event")
+
         self.begin = begin
         self.end = end
         self.description = description
@@ -88,5 +91,8 @@ class Event:
 
         return text
 
-    
+
+class EventException(Exception):
+    pass
+
 

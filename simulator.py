@@ -71,6 +71,7 @@ class Simulator:
             loading_time[terminal.id] = terminal.load_time           
             
             if train.is_ready:
+                
                 end_time = terminal.free_dispatch_time + train.calculate_travel_time(distance=distance)
                 event_description = f'Train {train.id} is going from Terminal {terminal.id} to Terminal {destination}'
                 
@@ -127,6 +128,7 @@ class Simulator:
 
     
     def simulate(self, verbose: bool=False):
+
         time_horizon = self.days*24*60 # maximum time in minutes of the simulation
 
         self.initiate_simulation()
@@ -163,7 +165,7 @@ if __name__ == "__main__":
     }
 
     train1 = Train(id='1',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
-    train1.is_ready = True
+    train1.is_ready = False
     train2 = Train(id='2',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
     train2.is_ready = True
     train3 = Train(id='3',velocity_empty=20, velocity_full=17,max_capacity=1000,location='2')
@@ -178,7 +180,7 @@ if __name__ == "__main__":
     
     days_of_simulation = 5
 
-    simulator = Simulator(trains=[train1, train2], terminals=[terminal1,terminal2, terminal3],
+    simulator = Simulator(trains=[train1], terminals=[terminal1,terminal2],
                         days=days_of_simulation,
                         initial_info=initial_info,
                         terminals_graph=terminals_graph,
