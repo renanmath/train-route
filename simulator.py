@@ -111,13 +111,18 @@ class Simulator:
        
 
     
-    def find_best_next_destination(self, current_terminal: Terminal, time_horizon:int):
+    def find_best_next_destination(self, current_terminal: Terminal, train: Train, time_horizon:int):
     
         options = [terminal for terminal in self.termimals
                         if terminal != current_terminal 
                         and current_terminal.graph_distances.get(terminal.id, None) is not None]
 
-        options.sort(key=lambda ter: ter.free_recive_time)
+        
+        if current_terminal.has_demand:
+            options.sort(key=lambda ter: train.calculate_travel_time(ter.graph_distances[current_terminal.id])+ter.unload_time)
+        else:
+            options.sort(key=lambda ter: train.calculate_travel_time(ter.graph_distances[current_terminal.id])+ter.operation_time)
+
 
         best_terminal = options[0]
 
@@ -139,7 +144,9 @@ class Simulator:
             for terminal in self.termimals:
                 terminal.current_time = self.time
 
-            next_destination = self.find_best_next_destination(current_terminal=event.terminal, time_horizon=time_horizon)
+            next_destination = self.find_best_next_destination(current_terminal=event.terminal,
+                                                            train=event.train,
+                                                            time_horizon=time_horizon)
             
             event.callback()             
             
@@ -163,7 +170,7 @@ if __name__ == "__main__":
     }
 
     train1 = Train(id='1',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
-    train1.is_ready = True
+    #train1.is_ready = True
     train2 = Train(id='2',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
     train2.is_ready = True
     train3 = Train(id='3',velocity_empty=20, velocity_full=17,max_capacity=1000,location='2')
@@ -176,9 +183,9 @@ if __name__ == "__main__":
     terminal3 = Terminal(id='3',max_capacity=80000,load_time=420,unload_time=600)
     terminal3.has_demand = False
     
-    days_of_simulation = 15
+    days_of_simulation = 5
 
-    simulator = Simulator(trains=[train1, train2], terminals=[terminal1,terminal2, terminal3],
+    simulator = Simulator(trains=[train1], terminals=[terminal1,terminal2],
                         days=days_of_simulation,
                         initial_info=initial_info,
                         terminals_graph=terminals_graph,

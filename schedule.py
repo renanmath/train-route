@@ -23,8 +23,7 @@ class Schedule:
 
     def pop_event(self) -> Event:
         if len(self.events) > 0:
-            event: Event = self.events[0]
-            self.events = self.events[1:]
+            event: Event = self.events.pop(0)
             self.events_log.append(event.log_message)
             return event
 
@@ -39,40 +38,50 @@ class Schedule:
     
 
         duration = terminal.unload_time if type_next_event == 'unload' else terminal.load_time
+        free_time = terminal.free_unload_time if type_next_event == 'unload' else terminal.free_load_time
 
         scheduled_events = [event for event in self.events
-                            if event.terminal == terminal 
+                            if event.terminal.id == terminal.id 
                             and event.type == type_next_event]
         
         scheduled_events.sort(key=lambda ev:ev.begin)
 
+        #print('---DEBUG---')
+        #print(self.events)
+        #print(scheduled_events)
+        #print(end_last_event, duration)
+        #print("-"*10)
+
         if len(scheduled_events) == 0:
+            return max(end_last_event, free_time)
+        
+        elif end_last_event + duration < scheduled_events[0].begin:
+
             return end_last_event
+        
+        elif len(scheduled_events) == 1:
+            return scheduled_events[0].end
 
-        if end_last_event + duration < scheduled_events[0].begin:
+        else:
 
-            begin = end_last_event
-
-            return begin
-
-        for i, event in enumerate(scheduled_events):
-            
-            prev_event = scheduled_events[i-1]
-            if end_last_event >= prev_event.end and end_last_event + duration <= event.begin:
-                begin = end_last_event
+            for i, event in enumerate(scheduled_events[1:]):
                 
-                return begin
+                prev_event = scheduled_events[i-1]
+                if end_last_event >= prev_event.end and end_last_event + duration <= event.begin:
+                    begin = end_last_event
+                    
+                    return begin
 
-            elif prev_event.end <= event.begin and prev_event.end + duration <= event.begin:
-                begin = prev_event.end
+                elif prev_event.end + duration <= event.begin:
+                    begin = prev_event.end
 
-                return begin
-            else:
-                begin = scheduled_events[-1].end
+                    return begin
+                else:
+                    begin = scheduled_events[-1].end
 
-                return begin
+                    return begin
 
-  
+    
     
     def build_arrival_event(self, prev_event: Event, next_destination: Terminal=None):
 
@@ -181,6 +190,10 @@ class Schedule:
         
         next_event.destination_terminal = next_destination
         self.append_event(next_event)
+        
+        #print("DEBUG -- all schedule events")
+        #print(self.events)
+        #print("\n\n")
         
         if self.verbose:
             print("-----Schedule event-----")

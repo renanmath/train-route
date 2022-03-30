@@ -37,6 +37,14 @@ class Terminal:
         self.free_recive_time = 0
     
     
+    
+    @property
+    def operation_time(self):
+        if self.has_demand:
+            return self.load_time
+        else:
+            return 0
+
     def build_demand_for_train(self, train: Train, product_name: str, destination: str):
         
         train_capacity = train.capacity
@@ -85,6 +93,7 @@ class Terminal:
         train.location = self.id
         train.is_ready = False
         self.free_recive_time = current_time
+
 
     def __repr__(self) -> str:
         return "Terminal " + self.id   
