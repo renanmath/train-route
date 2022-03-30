@@ -136,6 +136,9 @@ class Schedule:
         next_event = Event(begin=begin, end=end, type='dispatch',
                             description=event_description, train=train,
                             terminal=current_terminal)
+
+        next_event.destination_terminal = next_destination
+
         return next_event
         
     

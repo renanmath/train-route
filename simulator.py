@@ -51,8 +51,6 @@ class Simulator:
 
     
     def initiate_simulation(self):
-        
-        initial_events = []
 
         loading_time = {}
         for terminal in self.termimals:
@@ -64,48 +62,42 @@ class Simulator:
 
             train_id = train.id
             location = self.initial_info['trains'][train_id]['location']
-            destination = self.initial_info['trains'][train_id]['destination']
-            distance = self.terminals_graph[location][destination]
             train.location = location
             terminal = self.get_terminal_from_id(terminal_id=location)
             loading_time[terminal.id] = terminal.load_time           
             
             if train.is_ready:
-                
-                end_time = terminal.free_dispatch_time + train.calculate_travel_time(distance=distance)
-                event_description = f'Train {train.id} is going from Terminal {terminal.id} to Terminal {destination}'
-                
-                event = Event(begin=terminal.free_dispatch_time, end=end_time, description=event_description,
-                            type='dispatch',train=train,terminal=terminal)
-                
+
                 destination_terminal_id = initial_info['trains'][train.id]['destination']
-                event.destination_terminal = next((ter for ter in self.termimals if ter.id==destination_terminal_id))
+                print(destination_terminal_id)
+                destination_terminal = next((ter for ter in self.termimals if ter.id==destination_terminal_id))
+                print(destination_terminal)
+
+                event = self.scheduler.build_dispatch_event(train=train,
+                                                    current_terminal=terminal,
+                                                    next_destination=destination_terminal,
+                                                    end_last_event=terminal.free_dispatch_time)
+
 
                 demand = Demand(product='',total=1000,origin=terminal.id,destination=destination_terminal_id)
                 train.demand = demand
                 
-            elif train.is_empty:                
-                
-                end_time = terminal.free_load_time + loading_time[terminal.id]        
-            
-                event_description = f'Train {train.id} is loading carg at Terminal {terminal.id}'
-                event = Event(begin=terminal.free_load_time, end=end_time, type='load',
-                            description=event_description, train=train, terminal=terminal)
+            elif train.is_empty:
+
+                event = self.scheduler.build_load_event(train=train,
+                                                        terminal=terminal,
+                                                        end_last_event=terminal.free_load_time)               
 
                 destination_terminal_id = initial_info['trains'][train.id]['destination']
                 event.destination_terminal = next((ter for ter in self.termimals if ter.id==destination_terminal_id))
-                terminal.free_load_time = end_time    
+                terminal.free_load_time = terminal.free_load_time + terminal.load_time                
             
             else:
+
                 train.is_ready = True
-
             
-            initial_events.append(event)
-
-        initial_events.sort(key=lambda ev: ev.begin)
-
-        for ev in initial_events:
-            self.scheduler.append_event(ev)       
+            self.scheduler.append_event(event) 
+              
 
     
     def find_best_next_destination(self, current_terminal: Terminal, train: Train, time_horizon:int):
@@ -165,7 +157,7 @@ if __name__ == "__main__":
     }
 
     train1 = Train(id='1',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
-    train1.is_ready = False
+    train1.is_ready = True
     train2 = Train(id='2',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
     train2.is_ready = True
     train3 = Train(id='3',velocity_empty=20, velocity_full=17,max_capacity=1000,location='2')
@@ -180,7 +172,7 @@ if __name__ == "__main__":
     
     days_of_simulation = 5
 
-    simulator = Simulator(trains=[train1], terminals=[terminal1,terminal2],
+    simulator = Simulator(trains=[train1, train2], terminals=[terminal1,terminal2, terminal3],
                         days=days_of_simulation,
                         initial_info=initial_info,
                         terminals_graph=terminals_graph,
