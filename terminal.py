@@ -20,6 +20,7 @@ class Terminal:
 
         self.id = id
         self.max_capacity = max_capacity
+        self.stock = 0 # amout of product storeged
         self.capacity = max_capacity  # current capacity
         self.load_time = load_time
         self.unload_time = unload_time
@@ -39,6 +40,10 @@ class Terminal:
     
     
     @property
+    def has_stock(self):
+        return self.stock > 0
+    
+    @property
     def operation_time(self):
         if self.has_demand:
             return self.free_load_time
@@ -47,11 +52,12 @@ class Terminal:
 
     def build_demand_for_train(self, train: Train, product_name: str, destination: str):
         
-        train_capacity = train.capacity
-        self.capacity -= train_capacity
+        total_demand = min(train.capacity, self.stock)
+        self.capacity -= total_demand
+        self.stock -= total_demand        
 
         demand = Demand(product=product_name,
-                        total=train_capacity,
+                        total=total_demand,
                         origin=self.id,
                         destination=destination)
 

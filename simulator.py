@@ -22,7 +22,7 @@ class Simulator:
                 Structure:
                 {
                     'trains':{train_id: {'location': location, 'destination': destination, 'carg': carg}},
-                    'terminals': {'terminal_id: {'demand':demand, 'capacity': capacity}}
+                    'terminals': {'terminal_id: {'stock':stock, 'capacity': capacity}}
                 }
             - terminals_graph (dict): dictionary with the distances between all connections
             Structure:
@@ -38,9 +38,19 @@ class Simulator:
         self.terminals_graph = terminals_graph
 
         self.time = 0  # instant of time of the simulation, in minutes
-        self.demand_per_terminal = {terminal_id: initial_info['terminals'][terminal_id]['demand'] 
+
+        self.stock_per_terminal = {terminal_id: initial_info['terminals'][terminal_id]['stock'] 
                                     for terminal_id in initial_info['terminals']}
+
+        
+        for terminal in self.termimals:
+            terminal.stock = self.stock_per_terminal[terminal.id]
+
+        self.has_demand_left = any([ter.has_stock for ter in self.termimals])
+
         self.scheduler = Schedule(verbose=verbose)
+
+        
 
     
     def get_terminal_from_id(self, terminal_id):
@@ -118,12 +128,16 @@ class Simulator:
 
     
     def simulate(self, verbose: bool=False):
+      
 
         time_horizon = self.days*24*60 # maximum time in minutes of the simulation
 
         self.initiate_simulation()
 
         while len(self.scheduler.events) > 0 and self.time <= time_horizon:
+            
+            if not any([ter.has_stock for ter in self.termimals]):
+                break
             
             event = self.scheduler.events[0]
 
@@ -149,9 +163,9 @@ if __name__ == "__main__":
             '3': {'location':'1', 'destination':'2', 'carg':0}
         },
         'terminals': {
-            '1': {'demand': 30000, 'capacity':60000},
-            '2': {'demand': 30000, 'capacity':60000},
-            '3': {'demand': 30000, 'capacity':60000}
+            '1': {'stock': 6000, 'capacity':60000},
+            '2': {'stock': 4000, 'capacity':60000},
+            '3': {'stock': 0, 'capacity':60000}
         }
     }
 
@@ -166,7 +180,7 @@ if __name__ == "__main__":
 
     terminal1 = Terminal(id='1',max_capacity=80000,load_time=420,unload_time=360)
     terminal2 = Terminal(id='2',max_capacity=80000,load_time=420,unload_time=360)
-    terminal2.has_demand = False
+    terminal2.has_demand = True
     terminal3 = Terminal(id='3',max_capacity=80000,load_time=420,unload_time=600)
     terminal3.has_demand = False
     
