@@ -146,8 +146,7 @@ if __name__ == "__main__":
         'trains': {
             '1':{'location':'1', 'destination':'2', 'carg':1000},
             '2':{'location':'1', 'destination':'3', 'carg':1000},
-            '3': {'location':'1', 'destination':'2', 'carg':0},
-            '4':{'location': '2', 'destination': '1', 'carg': 0}
+            '3': {'location':'1', 'destination':'2', 'carg':0}
         },
         'terminals': {
             '1': {'demand': 30000, 'capacity':60000},
@@ -162,7 +161,7 @@ if __name__ == "__main__":
     train2.is_ready = True
     train3 = Train(id='3',velocity_empty=20, velocity_full=17,max_capacity=1000,location='2')
     train3.is_ready = True
-    train4 = Train(id='4',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
+    
     
 
     terminal1 = Terminal(id='1',max_capacity=80000,load_time=420,unload_time=360)
@@ -173,7 +172,7 @@ if __name__ == "__main__":
     
     days_of_simulation = 30
 
-    simulator = Simulator(trains=[train1, train2, train3, train4], terminals=[terminal1,terminal2, terminal3],
+    simulator = Simulator(trains=[train1, train2], terminals=[terminal1,terminal2, terminal3],
                         days=days_of_simulation,
                         initial_info=initial_info,
                         terminals_graph=terminals_graph,
