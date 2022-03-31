@@ -72,3 +72,8 @@ class Train:
             self.travel_time = int(60*distance/self.velocity_full)
         
         return self.travel_time
+
+    
+
+    def __repr__(self) -> str:
+        return 'Train ' + self.id

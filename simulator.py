@@ -69,9 +69,7 @@ class Simulator:
             if train.is_ready:
 
                 destination_terminal_id = initial_info['trains'][train.id]['destination']
-                print(destination_terminal_id)
                 destination_terminal = next((ter for ter in self.termimals if ter.id==destination_terminal_id))
-                print(destination_terminal)
 
                 event = self.scheduler.build_dispatch_event(train=train,
                                                     current_terminal=terminal,
@@ -139,6 +137,7 @@ class Simulator:
             
             simulator.scheduler.schedule_next_event(next_destination=next_destination)
 
+        self.scheduler.build_log_sheet()
 
 
 if __name__ == "__main__":

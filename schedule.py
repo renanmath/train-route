@@ -1,7 +1,7 @@
-from distutils.command.build import build
 from event import Event
 from terminal import Terminal
 from train import Train
+import pandas as pd
 
 class Schedule:
     """
@@ -24,7 +24,7 @@ class Schedule:
     def pop_event(self) -> Event:
         if len(self.events) > 0:
             event: Event = self.events.pop(0)
-            self.events_log.append(event.log_message)
+            self.events_log.append(event.info)
             return event
 
     
@@ -200,6 +200,64 @@ class Schedule:
             
 
         return next_event
+
+    
+    def build_log_sheet(self):
+
+        cycle = {
+            'arrival':0,
+            'unload': 1,
+            'load': 2,
+            'dispatch': 3
+        }
+
+
+        terminals = []
+        trains = []
+
+        for info in self.events_log:
+
+            if info['terminal'] not in terminals:
+                terminals.append(info['terminal'])
+            
+            if info['train'] not in trains:
+                trains.append(info['train'])
+        
+        columns_terminals = []
+
+        for terminal in terminals:
+            columns_terminals.append(["Chegando no " + terminal, 
+                                        "Descarregando no " + terminal,
+                                        "Carregando no " + terminal,
+                                        "Partindo do " + terminal])
+
+        list_of_info = []
+
+        for info in self.events_log:
+            terminal = info['terminal']
+            r = cycle[info['type']]
+
+            line = dict()
+
+            line['Dia'] = info['begin_day']
+            line['Hora'] = info['begin_hour']
+
+            for q, _ in enumerate(terminals):
+                for j in range(4):
+                    if j == r:
+                        line[columns_terminals[q][j]] = info['train']
+                    else:
+                        line[columns_terminals[q][j]] = ''
+            
+            list_of_info.append(line)
+        
+        df = pd.DataFrame(data=list_of_info)
+        df.to_excel("simulation.xlsx")
+
+
+
+
+
 
 
 

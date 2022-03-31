@@ -34,7 +34,7 @@ class Event:
 
         self.destination_terminal: Optional[Terminal] = None
 
-        self.log_message = "On " + self.convert_minutes_to_date(minutes=self.begin) + "---> " + self.description
+        self.log_message = "On " + self.convert_minutes_to_date(minutes=self.begin)[0] + "---> " + self.description
  
 
 
@@ -73,11 +73,11 @@ class Event:
 
 
     def __repr__(self) -> str:
-        return "Event " + self.type + "\n" + self.description +"\n" + self.convert_minutes_to_date(self.begin) + "---" + self.convert_minutes_to_date(self.end)
+        return "Event " + self.type + "\n" + self.description +"\n" + self.convert_minutes_to_date(self.begin)[0] + "---" + self.convert_minutes_to_date(self.end)
 
     
     @staticmethod
-    def convert_minutes_to_date(minutes: int) -> str:
+    def convert_minutes_to_date(minutes: int):
         day = math.floor(minutes/(24*60)) + 1
         remaining = minutes - 60*24*(day-1)
         hour = math.floor(remaining/60)
@@ -89,7 +89,25 @@ class Event:
 
         text = f"Day {digit1}{day}, {digit2}{hour}H:{digit3}{minu}m"
 
-        return text
+        return text, day, hour, minu
+
+    @property
+    def info(self):
+
+        info = {
+            'type': self.type,
+            'begin': self.begin,
+            'end': self.end,
+            'begin_day': self.convert_minutes_to_date(self.begin)[1],
+            'begin_hour': self.convert_minutes_to_date(self.begin)[2],
+            'end_day': self.convert_minutes_to_date(self.end)[1],
+            'end_hour': self.convert_minutes_to_date(self.begin)[2],
+            'train': str(self.train),
+            'terminal': str(self.terminal),
+
+        }
+
+        return info
 
 
 class EventException(Exception):
