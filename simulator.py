@@ -43,7 +43,10 @@ class Simulator:
         self.scheduler = Schedule(verbose=verbose)
 
     
-    def get_terminal_from_id(self, terminal_id):
+    def get_terminal_from_id(self, terminal_id:str) -> Terminal:
+        """
+        Returns: terminal object with the given id
+        """
         try:
             return next((terminal for terminal in self.termimals if terminal.id==terminal_id))
         except StopIteration:
@@ -51,6 +54,9 @@ class Simulator:
 
     
     def initiate_simulation(self):
+        """
+        Initiate all trains and terminals and create the first events
+        """
 
         loading_time = {}
         for terminal in self.termimals:
@@ -99,6 +105,12 @@ class Simulator:
 
     
     def find_best_next_destination(self, current_terminal: Terminal, train: Train, time_horizon:int):
+        """
+        Determinates the best terminal to send the train, given the current conditions of the simulation.
+        If the current terminal has demand, train is sent to the terminal minunum free unload time.
+        Else, train is sent to the terminal with the minumum free load time or free dispatch time.
+        Time travel is also taken in account. 
+        """
     
         options = [terminal for terminal in self.termimals
                         if terminal != current_terminal 
@@ -118,6 +130,9 @@ class Simulator:
 
     
     def simulate(self, verbose: bool=False):
+        """
+        Main simulation loop.
+        """
 
         time_horizon = self.days*24*60 # maximum time in minutes of the simulation
 
@@ -125,7 +140,7 @@ class Simulator:
 
         while len(self.scheduler.events) > 0 and self.time <= time_horizon:
             
-            event = self.scheduler.events[0]
+            event = self.scheduler.events[0] # next event in the schedule
 
             self.time = event.end
 
@@ -133,10 +148,13 @@ class Simulator:
                                                             train=event.train,
                                                             time_horizon=time_horizon)
             
-            event.callback()             
+            # call event and then schedule the next one
+            event.callback()
             
-            simulator.scheduler.schedule_next_event(next_destination=next_destination)
+            simulator.scheduler.schedule_next_event(next_destination=next_destination) 
 
+        
+        # At the and, create a sheet with the summary of the simulation
         self.scheduler.build_log_sheet()
 
 
@@ -170,7 +188,7 @@ if __name__ == "__main__":
     terminal3 = Terminal(id='3',max_capacity=80000,load_time=420,unload_time=600)
     terminal3.has_demand = False
     
-    days_of_simulation = 30
+    days_of_simulation = 7
 
     simulator = Simulator(trains=[train1, train2], terminals=[terminal1,terminal2, terminal3],
                         days=days_of_simulation,
