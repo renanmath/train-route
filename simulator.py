@@ -106,9 +106,9 @@ class Simulator:
 
         
         if current_terminal.has_demand:
-            options.sort(key=lambda ter: train.calculate_travel_time(ter.graph_distances[current_terminal.id])+ter.unload_time)
+            options.sort(key=lambda ter: max(self.time + train.calculate_travel_time(ter.graph_distances[current_terminal.id]), ter.free_unload_time))
         else:
-            options.sort(key=lambda ter: train.calculate_travel_time(ter.graph_distances[current_terminal.id])+ter.operation_time)
+            options.sort(key=lambda ter: max(self.time + train.calculate_travel_time(ter.graph_distances[current_terminal.id]), ter.operation_time))
 
 
         best_terminal = options[0]
@@ -127,7 +127,7 @@ class Simulator:
             
             event = self.scheduler.events[0]
 
-            self.time = event.begin
+            self.time = event.end
 
             next_destination = self.find_best_next_destination(current_terminal=event.terminal,
                                                             train=event.train,
@@ -146,7 +146,8 @@ if __name__ == "__main__":
         'trains': {
             '1':{'location':'1', 'destination':'2', 'carg':1000},
             '2':{'location':'1', 'destination':'3', 'carg':1000},
-            '3': {'location':'1', 'destination':'2', 'carg':0}
+            '3': {'location':'1', 'destination':'2', 'carg':0},
+            '4':{'location': '2', 'destination': '1', 'carg': 0}
         },
         'terminals': {
             '1': {'demand': 30000, 'capacity':60000},
@@ -156,11 +157,12 @@ if __name__ == "__main__":
     }
 
     train1 = Train(id='1',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
-    train1.is_ready = True
+    train1.is_ready = False
     train2 = Train(id='2',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
     train2.is_ready = True
     train3 = Train(id='3',velocity_empty=20, velocity_full=17,max_capacity=1000,location='2')
     train3.is_ready = True
+    train4 = Train(id='4',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
     
 
     terminal1 = Terminal(id='1',max_capacity=80000,load_time=420,unload_time=360)
@@ -169,9 +171,9 @@ if __name__ == "__main__":
     terminal3 = Terminal(id='3',max_capacity=80000,load_time=420,unload_time=600)
     terminal3.has_demand = False
     
-    days_of_simulation = 5
+    days_of_simulation = 30
 
-    simulator = Simulator(trains=[train1, train2], terminals=[terminal1,terminal2, terminal3],
+    simulator = Simulator(trains=[train1, train2, train3, train4], terminals=[terminal1,terminal2, terminal3],
                         days=days_of_simulation,
                         initial_info=initial_info,
                         terminals_graph=terminals_graph,

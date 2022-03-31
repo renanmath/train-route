@@ -41,9 +41,9 @@ class Terminal:
     @property
     def operation_time(self):
         if self.has_demand:
-            return self.load_time
+            return self.free_load_time
         else:
-            return 0
+            return self.free_dispatch_time
 
     def build_demand_for_train(self, train: Train, product_name: str, destination: str):
         

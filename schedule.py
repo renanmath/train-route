@@ -213,28 +213,31 @@ class Schedule:
 
 
         terminals = []
-        trains = []
 
         for info in self.events_log:
 
             if info['terminal'] not in terminals:
                 terminals.append(info['terminal'])
-            
-            if info['train'] not in trains:
-                trains.append(info['train'])
         
         columns_terminals = []
+        columns_names = ['Dia', 'Hora']
 
         for terminal in terminals:
-            columns_terminals.append(["Chegando no " + terminal, 
-                                        "Descarregando no " + terminal,
-                                        "Carregando no " + terminal,
-                                        "Partindo do " + terminal])
 
-        list_of_info = []
+            cols = ["Chegando no\nTerminal " + terminal, 
+                    "Descarregando no\nTerminal " + terminal,
+                    "Carregando no\nTerminal " + terminal,
+                    "Partindo do\nTerminal " + terminal]
+           
+            columns_terminals.append(cols)
+            columns_names.extend(cols)
+
+        total_info = []
 
         for info in self.events_log:
+
             terminal = info['terminal']
+            train = info['train']
             r = cycle[info['type']]
 
             line = dict()
@@ -242,22 +245,16 @@ class Schedule:
             line['Dia'] = info['begin_day']
             line['Hora'] = info['begin_hour']
 
-            for q, _ in enumerate(terminals):
+            for q, ter in enumerate(terminals):
                 for j in range(4):
-                    if j == r:
-                        line[columns_terminals[q][j]] = info['train']
+                    if j == r and ter == terminal:
+                        line[columns_terminals[q][j]] = f"Trem {train}"
                     else:
                         line[columns_terminals[q][j]] = ''
             
-            list_of_info.append(line)
+            total_info.append(line)
         
-        df = pd.DataFrame(data=list_of_info)
+        df = pd.DataFrame(data=total_info, columns=columns_names)
+     
         df.to_excel("simulation.xlsx")
-
-
-
-
-
-
-
 

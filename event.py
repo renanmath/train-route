@@ -89,7 +89,7 @@ class Event:
 
         text = f"Day {digit1}{day}, {digit2}{hour}H:{digit3}{minu}m"
 
-        return text, day, hour, minu
+        return text, f"{digit1}{day}", f"{digit2}{hour}H:{digit3}{minu}m"
 
     @property
     def info(self):
@@ -102,8 +102,8 @@ class Event:
             'begin_hour': self.convert_minutes_to_date(self.begin)[2],
             'end_day': self.convert_minutes_to_date(self.end)[1],
             'end_hour': self.convert_minutes_to_date(self.begin)[2],
-            'train': str(self.train),
-            'terminal': str(self.terminal),
+            'train': self.train.id,
+            'terminal': self.terminal.id,
 
         }
 
