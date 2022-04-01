@@ -38,6 +38,8 @@ class Simulator:
         self.terminals_graph = terminals_graph
 
         self.time = 0  # instant of time of the simulation, in minutes
+        self.time_horizon = self.days*24*60 # maximum time in minutes of the simulation
+        
         self.demand_per_terminal = {terminal_id: initial_info['terminals'][terminal_id]['demand'] 
                                     for terminal_id in initial_info['terminals']}
         self.scheduler = Schedule(verbose=verbose)
@@ -104,7 +106,7 @@ class Simulator:
               
 
     
-    def find_best_next_destination(self, current_terminal: Terminal, train: Train, time_horizon:int):
+    def find_best_next_destination(self, current_terminal: Terminal, train: Train, end_last_event:int):
         """
         Determinates the best terminal to send the train, given the current conditions of the simulation.
         If the current terminal has demand, train is sent to the terminal minunum free unload time.
@@ -118,9 +120,9 @@ class Simulator:
 
         
         if current_terminal.has_demand:
-            options.sort(key=lambda ter: max(self.time + train.calculate_travel_time(ter.graph_distances[current_terminal.id]), ter.free_unload_time))
+            options.sort(key=lambda ter: max(end_last_event + train.calculate_travel_time(ter.graph_distances[current_terminal.id]), ter.free_unload_time))
         else:
-            options.sort(key=lambda ter: max(self.time + train.calculate_travel_time(ter.graph_distances[current_terminal.id]), ter.operation_time))
+            options.sort(key=lambda ter: max(end_last_event + train.calculate_travel_time(ter.graph_distances[current_terminal.id]), ter.operation_time))
 
 
         best_terminal = options[0]
@@ -134,19 +136,17 @@ class Simulator:
         Main simulation loop.
         """
 
-        time_horizon = self.days*24*60 # maximum time in minutes of the simulation
-
         self.initiate_simulation()
 
-        while len(self.scheduler.events) > 0 and self.time <= time_horizon:
+        while len(self.scheduler.events) > 0 and self.time <= self.time_horizon:
             
             event = self.scheduler.events[0] # next event in the schedule
 
-            self.time = event.end
+            self.time = event.begin
 
             next_destination = self.find_best_next_destination(current_terminal=event.terminal,
                                                             train=event.train,
-                                                            time_horizon=time_horizon)
+                                                            end_last_event=event.end)
             
             # call event and then schedule the next one
             event.callback()
@@ -188,9 +188,9 @@ if __name__ == "__main__":
     terminal3 = Terminal(id='3',max_capacity=80000,load_time=420,unload_time=600)
     terminal3.has_demand = False
     
-    days_of_simulation = 7
+    days_of_simulation = 5
 
-    simulator = Simulator(trains=[train1, train2], terminals=[terminal1,terminal2, terminal3],
+    simulator = Simulator(trains=[train1], terminals=[terminal1,terminal2],
                         days=days_of_simulation,
                         initial_info=initial_info,
                         terminals_graph=terminals_graph,
