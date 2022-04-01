@@ -11,6 +11,8 @@ class Schedule:
     def __init__(self, verbose: bool = False) -> None:
         """
         Constructor method
+        Params:
+            - verbose (bool): flag to print the steps of scheduling the events
         """
 
         self.events = list()
@@ -34,8 +36,9 @@ class Schedule:
     
     def find_best_time_for_next_event(self, type_next_event:str,
                                             terminal: Terminal, end_last_event:int):
-
-    
+        """
+        Calculate the best time to initiate the next event, based on the previuous one.
+        """    
 
         duration = terminal.unload_time if type_next_event == 'unload' else terminal.load_time
         free_time = terminal.free_unload_time if type_next_event == 'unload' else terminal.free_load_time
@@ -202,7 +205,29 @@ class Schedule:
         return next_event
 
     
+    def create_line_of_summary(self, info, terminals,columns_terminals, train, terminal, r):
+        """
+        Create a line of the sheet contaning the summary of the simulation
+        """
+
+        line = dict()
+
+        line['Dia'] = info['begin_day']
+        line['Hora'] = info['begin_hour']
+
+        for q, ter in enumerate(terminals):
+            for j in range(4):
+                if j == r and ter == terminal:
+                    line[columns_terminals[q][j]] = f"Trem {train}"
+                else:
+                    line[columns_terminals[q][j]] = ''
+        
+        return line
+    
     def build_log_sheet(self):
+        """
+        Create a sheet with the summary of the simulation
+        """
 
         cycle = {
             'arrival':0,
@@ -240,17 +265,7 @@ class Schedule:
             train = info['train']
             r = cycle[info['type']]
 
-            line = dict()
-
-            line['Dia'] = info['begin_day']
-            line['Hora'] = info['begin_hour']
-
-            for q, ter in enumerate(terminals):
-                for j in range(4):
-                    if j == r and ter == terminal:
-                        line[columns_terminals[q][j]] = f"Trem {train}"
-                    else:
-                        line[columns_terminals[q][j]] = ''
+            line = self.create_line_of_summary(info, terminals,columns_terminals, train, terminal, r)
             
             total_info.append(line)
         
