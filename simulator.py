@@ -49,6 +49,11 @@ class Simulator:
                                     for terminal_id in initial_info['terminals']}
 
 
+        for train in self.trains:
+            train.location = self.initial_info['trains'][train.id]['location']
+            train.destination = self.initial_info['trains'][train.id]['destination']
+            
+
         for terminal in self.termimals:
             terminal.graph_distances = self.terminals_graph[terminal.id]
             terminal.stock = self.stock_per_terminal[terminal.id]
@@ -83,10 +88,13 @@ class Simulator:
 
     
     def actualize_demand(self, new_demand: Demand, train: Train):
+        print("DEBUG atualizar volume")
+        print(train.id, train.location, train.destination)
 
         total = new_demand.total
         origin_id = new_demand.origin
         destination_id = new_demand.destination
+        print(total, origin_id, destination_id)
 
         new_demand_per_terminal = deepcopy(self.demand_control[-1][1])
 
@@ -112,10 +120,7 @@ class Simulator:
         
         for train in self.trains:
 
-            train_id = train.id
-            location = self.initial_info['trains'][train_id]['location']
-            train.location = location
-            terminal = self.get_terminal_from_id(terminal_id=location)
+            terminal = self.get_terminal_from_id(terminal_id=train.location)
             loading_time[terminal.id] = terminal.load_time
 
             destination_terminal_id = initial_info['trains'][train.id]['destination']
@@ -172,6 +177,9 @@ class Simulator:
         Time travel is also taken in account. 
         """
     
+        if train.destination is not None and train.location != 'railroad':
+            return self.get_terminal_from_id(terminal_id=train.destination)
+        
         options = [terminal for terminal in self.termimals
                         if terminal != current_terminal 
                         and current_terminal.graph_distances.get(terminal.id, None) is not None
@@ -267,7 +275,7 @@ if __name__ == "__main__":
     train1 = Train(id='1',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
     train1.is_ready = False
     train2 = Train(id='2',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
-    train2.is_ready = False
+    train2.is_ready = True
     train3 = Train(id='3',velocity_empty=20, velocity_full=17,max_capacity=1000,location='2')
     train3.is_ready = True
     

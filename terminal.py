@@ -102,6 +102,7 @@ class Terminal:
     def register_train_arrival(self, train: Train, current_time:int):
         self.current_time = current_time
         train.location = self.id
+        train.destination = None
         train.is_ready = False
         self.free_recive_time = current_time
 

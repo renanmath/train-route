@@ -45,6 +45,7 @@ class Train:
         if self.is_empty:        
             self.demand = new_demand
             self.capacity = self.max_capacity - new_demand.total
+            self.location = new_demand.origin
             self.destination = new_demand.destination
             self.is_ready = True
 
@@ -53,6 +54,8 @@ class Train:
         Unload the train
         Return: tuple with product and total
         """
+
+        self.destination = None
 
         if not self.is_empty:
             product = self.demand.product
