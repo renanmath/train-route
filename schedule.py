@@ -111,7 +111,7 @@ class Schedule:
                             terminal= terminal)
         return next_event
     
-    def build_load_event(self, train: Train, terminal: Terminal, end_last_event:int):
+    def build_load_event(self, train: Train, terminal: Terminal, next_terminal: Terminal, end_last_event:int):
 
         begin = self.find_best_time_for_next_event(type_next_event='load',
                                                     terminal=terminal,
@@ -124,6 +124,9 @@ class Schedule:
         next_event = Event(begin=begin, end=end, type='load',
                             description=event_description, train=train,
                             terminal=terminal)
+        
+        next_event.destination_terminal = next_terminal
+                   
         return next_event
     
     def build_dispatch_event(self, train: Train, current_terminal: Terminal, next_destination: Terminal, end_last_event:int):
@@ -167,6 +170,7 @@ class Schedule:
                 if prev_event.terminal.has_demand:
                     next_event = self.build_load_event(train=prev_event.train,
                                                         terminal=prev_event.terminal,
+                                                        next_terminal=next_destination,
                                                         end_last_event=prev_event.end)
                 else:
                     next_event = self.build_dispatch_event(train=prev_event.train,
@@ -178,6 +182,7 @@ class Schedule:
             if prev_event.terminal.has_demand:
                 next_event = self.build_load_event(train=prev_event.train,
                                                         terminal=prev_event.terminal,
+                                                        next_terminal=next_destination,
                                                         end_last_event=prev_event.end)
             else:
                 next_event = self.build_dispatch_event(train=prev_event.train,
@@ -191,9 +196,13 @@ class Schedule:
                                                         current_terminal=prev_event.terminal,
                                                         next_destination=next_destination,
                                                         end_last_event=prev_event.end)
+            
+            next_event.demand = prev_event.demand
 
         
         next_event.destination_terminal = next_destination
+        
+
         self.append_event(next_event)
         
         if self.verbose:

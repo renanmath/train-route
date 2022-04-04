@@ -52,7 +52,9 @@ class Terminal:
 
     def build_demand_for_train(self, train: Train, product_name: str, destination: str):
         
-        total_demand = min(train.capacity, self.stock)
+        print("DEBUG build demand for train")
+        print(f"before = {self.stock}")
+        total_demand = min(train.max_capacity, self.stock)
         self.capacity -= total_demand
         self.stock -= total_demand        
 
@@ -60,6 +62,8 @@ class Terminal:
                         total=total_demand,
                         origin=self.id,
                         destination=destination)
+        
+        print(f"after = {self.stock}")
 
         return demand
 
@@ -74,7 +78,8 @@ class Terminal:
         train.load_train(new_demand=demand)
         self.free_load_time = self.current_time + self.load_time
         self.free_dispatch_time = self.free_load_time
-        
+
+        return demand      
 
 
     def unload_train_in_terminal(self, train: Train, current_time:int):

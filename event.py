@@ -39,9 +39,10 @@ class Event:
 
 
     def load_train_in_terminal(self):
-        self.terminal.load_train_in_terminal(train=self.train, 
+        demand = self.terminal.load_train_in_terminal(train=self.train, 
                                             destination=self.destination_terminal.id,
                                             current_time=self.begin)
+        self.demand = demand
 
     def unload_train_in_terminal(self):
         self.terminal.unload_train_in_terminal(train=self.train, current_time=self.begin)
