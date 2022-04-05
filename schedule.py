@@ -126,6 +126,10 @@ class Schedule:
                             terminal=terminal)
         
         next_event.destination_terminal = next_terminal
+
+        demand = terminal.build_demand_for_train(train=train,product_name='',destination=next_terminal.id)
+
+        next_event.demand = demand
                    
         return next_event
     

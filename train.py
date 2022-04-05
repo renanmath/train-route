@@ -63,6 +63,7 @@ class Train:
 
             self.capacity += total
             self.demand = None
+            self.is_ready = False
 
             return product,total
         else:
