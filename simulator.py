@@ -215,7 +215,7 @@ class Simulator:
                 print(f"Total volume from {terminal} to {other_terminal} = {total}")
 
     
-    def simulate(self, verbose: bool=False):
+    def simulate(self):
 
         """
         Main simulation loop.
@@ -238,7 +238,7 @@ class Simulator:
                                                             end_last_event=event.end)
             
             
-            if event.demand is not None and event.type == 'dispatch':
+            if event.demand is not None and event.type == 'load':
                 
                 self.actualize_demand(new_demand=event.demand, train=event.train)  
 
