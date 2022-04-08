@@ -34,7 +34,10 @@ class Event:
 
         self.destination_terminal: Optional[Terminal] = None
 
-        self.log_message = "On " + self.convert_minutes_to_date(minutes=self.begin)[0] + "---> " + self.description
+        if self.description is not None:
+            self.log_message = "On " + self.convert_minutes_to_date(minutes=self.begin)[0] + "---> " + self.description
+        else:
+            self.log_message = "On " + self.convert_minutes_to_date(minutes=self.begin)[0] + "---> " + f"Event {self.type}"
  
 
 

@@ -49,11 +49,6 @@ class Simulator:
                                     for terminal_id in initial_info['terminals']}
 
 
-        for train in self.trains:
-            train.location = self.initial_info['trains'][train.id]['location']
-            train.destination = self.initial_info['trains'][train.id]['destination']
-            
-
         for terminal in self.termimals:
             terminal.graph_distances = self.terminals_graph[terminal.id]
             terminal.stock = self.stock_per_terminal[terminal.id]
@@ -73,10 +68,63 @@ class Simulator:
         self.has_demand_left = any([ter.has_stock for ter in self.termimals])
 
         self.scheduler = Schedule(verbose=verbose)
+        
+        for train in self.trains:
+            train.location = self.initial_info['trains'][train.id]['location']
+            train.destination = self.initial_info['trains'][train.id]['destination']
+            train.demand = None
+
+            self.load_initial_carg(train=train)
+            
+        
+    
+    def load_initial_carg(self, train: Train):
+
+        if self.initial_info['trains'][train.id]['carg'] > 0:
+
+            terminal = self.get_terminal_from_id(terminal_id=train.location)
+
+            # build and call a load event
+
+            demand = terminal.build_demand_for_train(train=train,
+                                                    product_name='',
+                                                    destination=train.destination)        
+
+            event_description = f"{train} loaded carg at {terminal}"
+            event = Event(begin=-terminal.load_time,end=0,type='load',
+                                train=train,terminal=terminal,
+                                description=event_description,
+                                demand=demand)
+
+            destination_terminal = self.get_terminal_from_id(terminal_id=train.destination)
+
+            event.destination_terminal = destination_terminal
+            
+            train.is_ready = True
+
+            event.callback()
+
+            # update stock info
+
+            self.actualize_demand(new_demand=demand, train=train)  
+
+            # build a dispatch event and add to schedule
+
+            event_description = f"{train} is going from {terminal} to {destination_terminal}"
+
+            event = Event(begin=0,end=0,
+                        type='dispatch',
+                        description=event_description,
+                        train=train,
+                        terminal=terminal)
+
+            event.demand = demand
+            event.destination_terminal = destination_terminal
+
+            self.scheduler.append_event(event)
 
         
 
-    
     def get_terminal_from_id(self, terminal_id:str) -> Terminal:
         """
         Returns: terminal object with the given id
@@ -88,13 +136,10 @@ class Simulator:
 
     
     def actualize_demand(self, new_demand: Demand, train: Train):
-        print("DEBUG atualizar volume")
-        print(train.id, train.location, train.destination)
 
         total = new_demand.total
         origin_id = new_demand.origin
         destination_id = new_demand.destination
-        print(total, origin_id, destination_id)
 
         new_demand_per_terminal = deepcopy(self.demand_control[-1][1])
 
@@ -120,12 +165,17 @@ class Simulator:
         
         for train in self.trains:
 
+            if train.demand is not None:
+                continue
+
             terminal = self.get_terminal_from_id(terminal_id=train.location)
             loading_time[terminal.id] = terminal.load_time
 
             destination_terminal_id = initial_info['trains'][train.id]['destination']
-            destination_terminal = next((ter for ter in self.termimals if ter.id==destination_terminal_id))        
-            
+            destination_terminal = next((ter for ter in self.termimals if ter.id==destination_terminal_id))    
+     
+
+          
             if train.is_ready:
 
                 event = self.scheduler.build_dispatch_event(train=train,
@@ -137,7 +187,8 @@ class Simulator:
                 demand = terminal.build_demand_for_train(train=train, product_name='', destination=destination_terminal_id)
                 train.demand = demand
                 event.demand = demand
-                
+                         
+            
             elif train.is_empty:
 
                 event = self.scheduler.build_load_event(train=train,
@@ -145,7 +196,7 @@ class Simulator:
                                                         next_terminal=destination_terminal,
                                                         end_last_event=terminal.free_load_time)               
 
-                destination_terminal_id = initial_info['trains'][train.id]['destination']
+                destination_terminal_id = self.initial_info['trains'][train.id]['destination']
                 event.destination_terminal = next((ter for ter in self.termimals if ter.id==destination_terminal_id))
                 terminal.free_load_time = terminal.free_load_time + terminal.load_time
 
@@ -153,11 +204,12 @@ class Simulator:
                 train.demand = demand
                 event.demand = demand   
             
-            else:
 
-                train.is_ready = True
+            else:
+                event = None
             
-            self.scheduler.append_event(event) 
+            if event is not None:
+                self.scheduler.append_event(event) 
               
 
     
@@ -260,7 +312,7 @@ if __name__ == "__main__":
 
     initial_info = {
         'trains': {
-            '1':{'location':'1', 'destination':'2', 'carg':1000},
+            '1':{'location':'1', 'destination':'2', 'carg':0},
             '2':{'location':'1', 'destination':'3', 'carg':1000},
             '3': {'location':'1', 'destination':'2', 'carg':0}
         },
