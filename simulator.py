@@ -153,10 +153,6 @@ class Simulator:
 
         self.total_operated_demand_per_train[train.id] += total
 
-        print(total)
-        print(self.current_demand)
-        print([ter.stock for ter in self.termimals])
-
     
     def initiate_simulation(self):
         """
