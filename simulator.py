@@ -111,8 +111,10 @@ class Simulator:
             # build a dispatch event and add to schedule
 
             event_description = f"{train} is going from {terminal} to {destination_terminal}"
+            distance = terminal.graph_distances[train.destination]
+            travel_time = train.calculate_travel_time(distance)
 
-            event = Event(begin=0,end=0,
+            event = Event(begin=0,end=travel_time,
                         type='dispatch',
                         description=event_description,
                         train=train,
@@ -150,6 +152,10 @@ class Simulator:
         self.current_demand[origin_id][destination_id] -= total
 
         self.total_operated_demand_per_train[train.id] += total
+
+        print(total)
+        print(self.current_demand)
+        print([ter.stock for ter in self.termimals])
 
     
     def initiate_simulation(self):
@@ -200,7 +206,10 @@ class Simulator:
                 event.destination_terminal = next((ter for ter in self.termimals if ter.id==destination_terminal_id))
                 terminal.free_load_time = terminal.free_load_time + terminal.load_time
 
-                demand = Demand(product='',total=self.initial_info['trains'][train.id]['carg'],origin=terminal.id,destination=destination_terminal_id)
+                demand = terminal.build_demand_for_train(train=train,
+                                                        product_name='',
+                                                        destination=destination_terminal_id)
+                
                 train.demand = demand
                 event.demand = demand   
             
@@ -277,7 +286,9 @@ class Simulator:
 
         while len(self.scheduler.events) > 0 and self.time <= self.time_horizon:
 
-            if not any([ter.has_stock and ter.has_demand for ter in self.termimals]):
+            if not any([ter.has_stock 
+                        and sum([dem for dem in self.current_demand[ter.id].values()]) > 0
+                        for ter in self.termimals]):
                 print("No stock or demand left")
                 break
 
@@ -297,7 +308,13 @@ class Simulator:
             # call event and then schedule the next one
             event.callback()
             
-            simulator.scheduler.schedule_next_event(next_destination=next_destination)        
+            simulator.scheduler.schedule_next_event(next_destination=next_destination)
+
+            if not any([ter.has_stock 
+                        and sum([dem for dem in self.current_demand[ter.id].values()]) > 0
+                        for ter in self.termimals]):
+                print("No stock or demand left")
+                break     
 
         
         # At the and, create a sheet with the summary of the simulation and print statistics
@@ -321,7 +338,7 @@ if __name__ == "__main__":
             '2': {'stock': 0, 'capacity':60000},
             '3': {'stock': 0, 'capacity':60000}
         },
-        'demand': {'1':{'2':14000, '3':3000}, '2':{'1':0}, '3':{'1':0}}
+        'demand': {'1':{'2':3500, '3':0}, '2':{'1':0}, '3':{'1':0}}
     }
 
     train1 = Train(id='1',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
@@ -339,9 +356,9 @@ if __name__ == "__main__":
     terminal3 = Terminal(id='3',max_capacity=80000,load_time=420,unload_time=600)
     terminal3.has_demand = False
     
-    days_of_simulation = 15
+    days_of_simulation = 10
 
-    simulator = Simulator(trains=[train1, train2], terminals=[terminal1,terminal2, terminal3],
+    simulator = Simulator(trains=[train1], terminals=[terminal1,terminal2],
                         days=days_of_simulation,
                         initial_info=initial_info,
                         terminals_graph=terminals_graph,
