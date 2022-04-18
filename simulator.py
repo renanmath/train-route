@@ -334,7 +334,7 @@ if __name__ == "__main__":
             '2': {'stock': 0, 'capacity':60000},
             '3': {'stock': 0, 'capacity':60000}
         },
-        'demand': {'1':{'2':3500, '3':0}, '2':{'1':0}, '3':{'1':0}}
+        'demand': {'1':{'2':14000, '3':3000}, '2':{'1':0}, '3':{'1':0}}
     }
 
     train1 = Train(id='1',velocity_empty=20, velocity_full=17,max_capacity=1000,location='1')
@@ -352,9 +352,9 @@ if __name__ == "__main__":
     terminal3 = Terminal(id='3',max_capacity=80000,load_time=420,unload_time=600)
     terminal3.has_demand = False
     
-    days_of_simulation = 10
+    days_of_simulation = 15
 
-    simulator = Simulator(trains=[train1], terminals=[terminal1,terminal2],
+    simulator = Simulator(trains=[train1, train2], terminals=[terminal1,terminal2,terminal3],
                         days=days_of_simulation,
                         initial_info=initial_info,
                         terminals_graph=terminals_graph,
